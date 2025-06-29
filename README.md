@@ -1,7 +1,3 @@
-Absolut\! Hier ist der Text mit sinnvollem Markdown-Format ergänzt, um die Lesbarkeit und Struktur zu verbessern.
-
------
-
 # OWUI-VBA-Word-Integration
 
 ## Zweck des Projekts
