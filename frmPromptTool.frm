@@ -1,35 +1,50 @@
-' --- Globale Variable fÃ¼r das Modul, um die Prompts zu speichern ---
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmPromptTool 
+   Caption         =   "KI Plugin"
+   ClientHeight    =   6720
+   ClientLeft      =   110
+   ClientTop       =   450
+   ClientWidth     =   5040
+   OleObjectBlob   =   "frmPromptTool.frx":0000
+   StartUpPosition =   3  'Windows-Standard
+End
+Attribute VB_Name = "frmPromptTool"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+' --- Globale Variable für das Modul, um die Prompts zu speichern ---
 Private promptsList As VBA.Collection
 
 '------------------------------------------------------------------------------
-' Wird ausgefÃ¼hrt, wenn das Formular initialisiert wird.
+' Wird ausgeführt, wenn das Formular initialisiert wird.
 '------------------------------------------------------------------------------
 Private Sub UserForm_Initialize()
     Me.Caption = "Prompt Tool (Lade Konfiguration...)"
-    lblStatus.Caption = "Lade verfÃ¼gbare Modelle und Prompts..."
+    lblStatus.Caption = "Lade verfügbare Modelle und Prompts..."
     DoEvents ' UI aktualisieren
 
-    ' --- SCHRITT 1: VerfÃ¼gbare Modelle von der API laden ---
+    ' --- SCHRITT 1: Verfügbare Modelle von der API laden ---
     ' ========================================================
     Dim modelsList As VBA.Collection
     ' Debug.Print "Starte GetAllModels Funktion von Modul owui, um aktuelle Modellliste von OWUI zu erhalten"
     Set modelsList = owui.GetAllModels(ApplyFilter:=False) ' Alle Modelle von OWUI laden, gefiltert oder nicht
     ' Debug.Print "Modell Liste von OWUI erhalten"
     
-    Me.cboModel.Clear ' Alte EintrÃ¤ge lÃ¶schen
+    Me.cboModel.Clear ' Alte Einträge löschen
     
     If modelsList.Count > 0 Then
-        ' ComboBox mit den abgerufenen Modellen fÃ¼llen
+        ' ComboBox mit den abgerufenen Modellen füllen
         Dim modelName As Variant
         For Each modelName In modelsList
             Me.cboModel.AddItem modelName
         Next modelName
         
-        ' Versuche, das Standardmodell aus owuiconfig auszuwÃ¤hlen
+        ' Versuche, das Standardmodell aus owuiconfig auszuwählen
         On Error Resume Next ' Zur Sicherheit, falls das Standardmodell nicht existiert
         Me.cboModel.value = OWUI_MODEL
         If Err.Number <> 0 Then
-            ' Wenn das Standardmodell nicht gefunden wurde, wÃ¤hle das erste der Liste
+            ' Wenn das Standardmodell nicht gefunden wurde, wähle das erste der Liste
             Me.cboModel.ListIndex = 0
         End If
         On Error GoTo 0
@@ -41,19 +56,19 @@ Private Sub UserForm_Initialize()
         Me.cboModel.Enabled = False
     End If
     
-    ' --- SCHRITT 2: VerfÃ¼gbare Prompts von der API laden ---
+    ' --- SCHRITT 2: Verfügbare Prompts von der API laden ---
     ' ========================================================
     Debug.Print "Prompts holen"
     Set promptsList = owui.GetAllPromptCommands()
     
     If promptsList.Count > 0 Then
-        ' ComboBox mit den abgerufenen Prompts fÃ¼llen
+        ' ComboBox mit den abgerufenen Prompts füllen
         Dim p As Variant
         For Each p In promptsList
             cboPrompts.AddItem p
         Next p
         cboPrompts.ListIndex = -1 ' Keine Vorauswahl
-        lblStatus.Caption = "WÃ¤hle einen der " & promptsList.Count & " von OpenWebUI geladenen Prompts oder verfasse einen neuen."
+        lblStatus.Caption = "Wähle einen der " & promptsList.Count & " von OpenWebUI geladenen Prompts oder verfasse einen neuen."
     Else
         lblStatus.Caption = "Konnte keine Prompts laden."
         cboPrompts.AddItem "Keine Prompts gefunden."
@@ -64,25 +79,25 @@ Private Sub UserForm_Initialize()
 End Sub
 
 '------------------------------------------------------------------------------
-' NEU: Wird ausgefÃ¼hrt, wenn ein Prompt aus der Liste ausgewÃ¤hlt wird.
+' NEU: Wird ausgeführt, wenn ein Prompt aus der Liste ausgewählt wird.
 '------------------------------------------------------------------------------
 Private Sub cboPrompts_Change()
-    If cboPrompts.ListIndex = -1 Then Exit Sub ' Nichts tun, wenn die Auswahl gelÃ¶scht wird
+    If cboPrompts.ListIndex = -1 Then Exit Sub ' Nichts tun, wenn die Auswahl gelöscht wird
     
-    ' --- BenÃ¶tigte Variablen deklarieren ---
+    ' --- Benötigte Variablen deklarieren ---
     Dim selectedCommand As String
     Dim promptContent As String
-    Dim modelToSelect As String  ' Variable aus der Logik hinzugefÃ¼gt
+    Dim modelToSelect As String  ' Variable aus der Logik hinzugefügt
     
     ' --- Bestehende Logik zum Laden des Prompt-Inhalts ---
     selectedCommand = cboPrompts.value
-    lblStatus.Caption = "Lade Inhalt fÃ¼r '" & selectedCommand & "'..."
+    lblStatus.Caption = "Lade Inhalt für '" & selectedCommand & "'..."
     DoEvents
     
     ' Verwende die bestehende Funktion, um den Inhalt des Prompts abzurufen
     promptContent = owui.GetPromptByCommandName(selectedCommand)
     
-    ' --- PrÃ¼fen, ob der Inhalt erfolgreich geladen wurde ---
+    ' --- Prüfen, ob der Inhalt erfolgreich geladen wurde ---
     If promptContent <> "" Then
         ' Den geladenen Prompt im Textfeld anzeigen
         txtPrompt.text = promptContent
@@ -97,36 +112,36 @@ Private Sub cboPrompts_Change()
             On Error Resume Next ' Falls das Modell nicht in der Liste existiert
             Me.cboModel.value = modelToSelect
             
-            ' PrÃ¼fen, ob ein Fehler aufgetreten ist (Modell nicht gefunden)
+            ' Prüfen, ob ein Fehler aufgetreten ist (Modell nicht gefunden)
             If Err.Number <> 0 Then
-                 ' Optional: Fehler behandeln und Standard auswÃ¤hlen
+                 ' Optional: Fehler behandeln und Standard auswählen
                 MsgBox "Modell '" & modelToSelect & "' nicht in der Liste gefunden. Standard wird beibehalten.", vbExclamation
-                Me.cboModel.ListIndex = 0 ' WÃ¤hle Standard (z.B. erstes Element)
+                Me.cboModel.ListIndex = 0 ' Wähle Standard (z.B. erstes Element)
             End If
-            On Error GoTo 0 ' Fehlerbehandlung zurÃ¼cksetzen
+            On Error GoTo 0 ' Fehlerbehandlung zurücksetzen
         Else
             ' 3. Fallback: Wenn der Prompt KEINEN {{MODEL}}-Tag hat,
-            '    wÃ¤hle das in owuiconfig.OWUI_MODEL definierte Standardmodell aus.
+            '    wähle das in owuiconfig.OWUI_MODEL definierte Standardmodell aus.
             On Error Resume Next ' Zur Sicherheit, falls das Standardmodell nicht in der Liste existiert
             Me.cboModel.value = OWUI_MODEL
             
-            ' Wenn das Setzen des Standardmodells fehlschlÃ¤gt (z.B. nicht in der Liste),
-            ' dann als letzten Ausweg das erste Element der Liste wÃ¤hlen.
+            ' Wenn das Setzen des Standardmodells fehlschlägt (z.B. nicht in der Liste),
+            ' dann als letzten Ausweg das erste Element der Liste wählen.
             If Err.Number <> 0 Then
                 Me.cboModel.ListIndex = 0
             End If
-            On Error GoTo 0 ' Fehlerbehandlung zurÃ¼cksetzen
+            On Error GoTo 0 ' Fehlerbehandlung zurücksetzen
         End If
         
     Else
-        ' Bestehende Logik fÃ¼r den Fehlerfall
-        txtPrompt.text = "Fehler: Konnte Inhalt fÃ¼r '" & selectedCommand & "' nicht laden."
+        ' Bestehende Logik für den Fehlerfall
+        txtPrompt.text = "Fehler: Konnte Inhalt für '" & selectedCommand & "' nicht laden."
         lblStatus.Caption = "Fehler beim Laden des Prompts."
     End If
 End Sub
 
 '------------------------------------------------------------------------------
-' Wird ausgefÃ¼hrt, wenn der "Senden"-Button geklickt wird.
+' Wird ausgeführt, wenn der "Senden"-Button geklickt wird.
 '------------------------------------------------------------------------------
 Private Sub btnSend_Click()
     Dim finalPrompt As String
@@ -136,7 +151,7 @@ Private Sub btnSend_Click()
     model = cboModel.value
     
     If Trim(txtPrompt.text) = "" Then
-        MsgBox "Bitte geben Sie einen Prompt ein oder wÃ¤hlen Sie einen aus der Liste.", vbExclamation
+        MsgBox "Bitte geben Sie einen Prompt ein oder wählen Sie einen aus der Liste.", vbExclamation
         Exit Sub
     End If
 
@@ -149,7 +164,7 @@ Private Sub btnSend_Click()
     ' Funktion aufrufen, um die Antwort direkt ins Word-Dokument zu streamen
     result = owui.StreamOWUIToWordWithModel(finalPrompt, model)
 
-    lblStatus.Caption = "Antwort wurde eingefÃ¼gt."
+    lblStatus.Caption = "Antwort wurde eingefügt."
 End Sub
 
 '------------------------------------------------------------------------------
