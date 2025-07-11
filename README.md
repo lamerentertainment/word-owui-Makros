@@ -88,7 +88,7 @@ Wenn Sie Ihr Word-Projekt oder Ihre `Normal.dotm` in einem Git-Repository verwal
 
 ```gitignore
 # .gitignore
-owuiconfig.bas
+owuiconfig.bas```
 
 ## Verwendung
 
