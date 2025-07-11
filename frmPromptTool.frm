@@ -175,6 +175,14 @@ Private Sub btnSend_Click()
     End If
 
     lblStatus.Caption = "Antwort wurde eingefügt."
+    
+    ' --- Fokus zurück auf das Word-Dokument legen ---
+    ' Fokus robust zurück auf das Word-Dokument legen
+    Dim wordHWnd As LongPtr
+    wordHWnd = FindWindowA("OpusApp", vbNullString)
+    If wordHWnd <> 0 Then
+        SetForegroundWindow wordHWnd
+    End If
 End Sub
 
 '------------------------------------------------------------------------------

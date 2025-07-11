@@ -22,7 +22,7 @@
     ' Für Office 2010 und neuer (VBA Version 7)
 
     ' Öffnet und schliesst die Zwischenablage
-    Public Declare PtrSafe Function OpenClipboard Lib "user32" (ByVal hwnd As LongPtr) As Long
+    Public Declare PtrSafe Function OpenClipboard Lib "user32" (ByVal hWnd As LongPtr) As Long
     Public Declare PtrSafe Function CloseClipboard Lib "user32" () As Long
     
     ' Ruft Daten aus der Zwischenablage ab
@@ -35,17 +35,25 @@
     ' Kopiert einen String und ermittelt seine Länge (ANSI-Version für VBA)
     Public Declare PtrSafe Function lstrcpy Lib "kernel32" Alias "lstrcpyA" (ByVal lpString1 As Any, ByVal lpString2 As LongPtr) As Long
     Public Declare PtrSafe Function lstrlen Lib "kernel32" Alias "lstrlenA" (ByVal lpString As LongPtr) As Long
+    
+    ' Windows-API-Deklaration, um ein Fenster in den Vordergrund zu bringen
+    Public Declare PtrSafe Function SetForegroundWindow Lib "user32" (ByVal hWnd As LongPtr) As Long
+    Public Declare PtrSafe Function FindWindowA Lib "user32" (ByVal lpClassName As String, ByVal lpWindowName As String) As LongPtr
 
 #Else
     ' Für Office 2007 und älter (VBA Version 6)
     
-    Public Declare Function OpenClipboard Lib "user32" (ByVal hwnd As Long) As Long
+    Public Declare Function OpenClipboard Lib "user32" (ByVal hWnd As Long) As Long
     Public Declare Function CloseClipboard Lib "user32" () As Long
     Public Declare Function GetClipboardData Lib "user32" (ByVal uFormat As Long) As Long
     Public Declare Function GlobalLock Lib "kernel32" (ByVal hMem As Long) As Long
     Public Declare Function GlobalUnlock Lib "kernel32" (ByVal hMem As Long) As Long
     Public Declare Function lstrcpy Lib "kernel32" Alias "lstrcpyA" (ByVal lpString1 As Any, ByVal lpString2 As Long) As Long
     Public Declare Function lstrlen Lib "kernel32" Alias "lstrlenA" (ByVal lpString As Long) As Long
+    
+    ' Windows-API-Deklaration, um ein Fenster in den Vordergrund zu bringen
+    Public Declare Function SetForegroundWindow Lib "user32" (ByVal hWnd As Long) As Long
+    Public Declare Function FindWindowA Lib "user32" (ByVal lpClassName As String, ByVal lpWindowName As String) As Long
     
 #End If
 
@@ -742,6 +750,7 @@ End Function
 '               Gibt bei einem Fehler eine leere Collection zurück.
 '------------------------------------------------------------------------------
 Public Function GetAllPromptCommands() As VBA.Collection
+    Debug.Print "GetAllPromptComands startet"
     On Error GoTo ErrorHandler
 
     Dim request As Object
@@ -751,12 +760,21 @@ Public Function GetAllPromptCommands() As VBA.Collection
     ' --- Cache-Buster, um sicherzustellen, dass die Daten frisch sind ---
     Dim cacheBuster As String
     cacheBuster = "cache=" & Round(Timer * 100, 0)
+    
+    Debug.Print OWUI_API_URL
 
     ' 1. HTTP-Anfrage erstellen
     Set request = CreateObject("MSXML2.XMLHTTP")
     request.Open "GET", OWUI_API_URL & "/api/v1/prompts/list" & "?" & cacheBuster, False
     request.setRequestHeader "Authorization", "Bearer " & OWUI_API_TOKEN
+    'Debug.Print request
     request.send
+    
+    ' ===== NEUE DEBUG-ZEILEN START =====
+    ' Gibt den HTTP-Status und die rohe Antwort des Servers im "Direktfenster" aus.
+    'Debug.Print "HTTP Status: " & request.Status
+    'Debug.Print "Server Response: " & request.responseText
+    ' ===== NEUE DEBUG-ZEILEN ENDE =====
 
     ' 2. Antwort des Servers prüfen
     If request.Status = 200 Then
@@ -1548,5 +1566,3 @@ End Function
 'Weitere Ideen:
 'Tag {{QUOTE:"Belegstelle"}} um automatisch Belegstelle anzufügen und den Cursor an den richtigen Ort zu setzen,
 'dass gerade die Belegstelle hinzugefügt werden kann.
-'Import von Konfiguration-Credentials von einem anderen .gitignored Modul
-
