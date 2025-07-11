@@ -82,14 +82,6 @@ Folgen Sie diesen Schritten, um das Projekt in Ihrem Word zu installieren.
 - **`OWUI_API_TOKEN`**: Tragen Sie hier Ihren persönlichen API-Schlüssel für OpenWebUI ein.
 - **`OWUI_MODEL`**: Geben Sie den Namen des Modells an, das standardmässig verwendet werden soll.
 
-### 4. Wichtiger Sicherheitshinweis
-
-Wenn Sie Ihr Word-Projekt oder Ihre `Normal.dotm` in einem Git-Repository verwalten, stellen Sie **unbedingt** sicher, dass die Konfigurationsdatei `owuiconfig.bas` von der Versionskontrolle ausgeschlossen wird. Fügen Sie den Namen der Datei zu Ihrer `.gitignore`-Datei hinzu, um zu verhindern, dass Ihr API-Token versehentlich veröffentlicht wird.
-
-```gitignore
-# .gitignore
-owuiconfig.bas```
-
 ## Verwendung
 
 ### Starten des Prompt-Tools
