@@ -1,6 +1,9 @@
+' --- Belegstellen-Platzhalter, bei der die automatische Cursor-Positionierung erfolgt ---
+Private Const CURSOR_TARGET_STRING As String = "(Ziff. )"
 ' --- Globale Variable für das Modul, um die Prompts zu speichern ---
 Private promptsList As VBA.Collection
-Private lastResponseRange As Range ' Wird benötigt zum Speichern des Bereichs der letzten Antwort, um diese bei Nichtgefallen schnell wieder löschen zu können
+' --- Wird benötigt zum Speichern des Bereichs der letzten Antwort, um diese bei Nichtgefallen schnell wieder löschen zu können ---
+Private lastResponseRange As Range
 
 
 Private Sub CommandButton1_Click()
@@ -168,6 +171,36 @@ Private Sub btnSend_Click()
         Set lastResponseRange = ActiveDocument.Range(startRange.Start, Selection.Range.End)
         
         lblStatus.Caption = "Antwort wurde eingefügt."
+        
+
+        ' === Cursor automatisch in Belegstelle positionieren ===
+        Dim findRange As Range
+        Set findRange = lastResponseRange ' Arbeite mit einer Kopie des Bereichs
+        
+        ' Konfiguriere die Suche
+        With findRange.Find
+            .text = CURSOR_TARGET_STRING
+            .Forward = True
+            .Wrap = wdFindStop ' Nicht über das Ende des Bereichs hinaus suchen
+            .MatchCase = True
+            
+            ' Führe die Suche aus
+            If .Execute Then
+                ' Wenn der Text gefunden wurde, ist findRange jetzt der gefundene Bereich.
+                
+                ' Ersetze den gefundenen Text durch die Version mit geschütztem Leerzeichen (Chr(160))
+                findRange.text = "(Ziff." & Chr(160) & ")"
+                
+                ' Setze den Cursor an das Ende des gefundenen Bereichs...
+                findRange.Select
+                Selection.Collapse Direction:=wdCollapseEnd
+                
+                ' ...und bewege ihn ein Zeichen nach links (vor die schliessende Klammer).
+                Selection.MoveLeft Unit:=wdCharacter, Count:=1
+            End If
+        End With
+        ' ======================================================================
+        
     Else
         lblStatus.Caption = "Fehler bei der Anfrage oder keine Antwort erhalten."
         ' Sicherstellen, dass kein ungültiger Range gespeichert wird
