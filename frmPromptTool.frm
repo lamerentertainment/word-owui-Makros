@@ -1,8 +1,13 @@
 ' --- Belegstellen-Platzhalter, bei der die automatische Cursor-Positionierung erfolgt ---
 Private Const CURSOR_TARGET_STRING As String = "(Ziff. )"
+
+' --- Liste der Prompts für Kursiv-Formatierung als eine einzige Konstante ---
+Private Const ITALIC_PROMPT_LIST As String = "/frage-und-aussagekonvertierung-mannlich,/frage-und-aussagekonvertierung-weiblich" ' Fügen Sie hier weitere hinzu
+
 ' --- Globale Variable für das Modul, um die Prompts zu speichern ---
 Private promptsList As VBA.Collection
-' --- Wird benötigt zum Speichern des Bereichs der letzten Antwort, um diese bei Nichtgefallen schnell wieder löschen zu können ---
+
+' --- Wird benötigt zum Speichern des Bereichs der letzten Antwort ---
 Private lastResponseRange As Range
 
 
@@ -172,7 +177,58 @@ Private Sub btnSend_Click()
         
         lblStatus.Caption = "Antwort wurde eingefügt."
         
-
+        ' === Backslashes in Anführungszeichen umwandeln (NUR IM NEUEN TEXT) ===
+    
+        Dim findInRange As Range
+        Set findInRange = lastResponseRange ' Arbeite mit einer Kopie des Bereichs
+        
+        With findInRange.Find
+            .ClearFormatting
+            .Replacement.ClearFormatting
+            .text = "\"                         ' Suchen nach: Backslash
+            .Replacement.text = """"            ' Ersetzen durch: Anführungszeichen
+            .Forward = True
+            .Wrap = wdFindStop                  ' Suche nur innerhalb des Ranges stoppen
+            .Format = False
+            .MatchCase = False
+            
+            ' Führe die Ersetzung für alle Vorkommen im Range aus
+            .Execute Replace:=wdReplaceAll
+        End With
+        ' =====================================================================
+        
+        ' ======================================================================
+        ' === NEU: Text vor dem letzten Doppelpunkt kursiv formatieren ===
+        ' ======================================================================
+        ' Prüfen, ob der richtige Prompt verwendet wurde
+        If InStr(1, "," & ITALIC_PROMPT_LIST & ",", "," & Trim(Me.cboPrompts.value) & ",") > 0 Then
+            Dim formatRange As Range
+            Set formatRange = lastResponseRange
+            
+            ' Suche den letzten Doppelpunkt im Bereich (Rückwärtssuche)
+            With formatRange.Find
+                ' WICHTIG: Setzt alle alten Sucheinstellungen (Fett, Kursiv, etc.) zurück
+                .ClearFormatting
+                
+                .text = ":"
+                .Forward = False
+                .Wrap = wdFindStop
+                
+                If .Execute Then
+                    ' Wenn diese Box erscheint, wurde der Doppelpunkt gefunden.
+                    MsgBox "Doppelpunkt gefunden! Formatiere jetzt kursiv."
+                
+                    Dim italicRange As Range
+                    Set italicRange = ActiveDocument.Range(lastResponseRange.Start, formatRange.Start)
+                    italicRange.Font.Italic = True
+                Else
+                    ' Wenn diese Box erscheint, ist die Suche fehlgeschlagen.
+                    MsgBox "FEHLER: Doppelpunkt wurde im Text nicht gefunden."
+                End If
+            End With
+        End If
+        ' ======================================================================
+        
         ' === Cursor automatisch in Belegstelle positionieren ===
         Dim findRange As Range
         Set findRange = lastResponseRange ' Arbeite mit einer Kopie des Bereichs
