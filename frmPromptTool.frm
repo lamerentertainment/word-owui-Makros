@@ -1,50 +1,41 @@
-VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmPromptTool 
-   Caption         =   "KI Plugin"
-   ClientHeight    =   6720
-   ClientLeft      =   110
-   ClientTop       =   450
-   ClientWidth     =   5040
-   OleObjectBlob   =   "frmPromptTool.frx":0000
-   StartUpPosition =   3  'Windows-Standard
-End
-Attribute VB_Name = "frmPromptTool"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
-' --- Globale Variable für das Modul, um die Prompts zu speichern ---
+' --- Globale Variable fÃ¼r das Modul, um die Prompts zu speichern ---
 Private promptsList As VBA.Collection
+Private lastResponseRange As Range ' Wird benÃ¶tigt zum Speichern des Bereichs der letzten Antwort, um diese bei Nichtgefallen schnell wieder lÃ¶schen zu kÃ¶nnen
+
+
+Private Sub CommandButton1_Click()
+
+End Sub
 
 '------------------------------------------------------------------------------
-' Wird ausgeführt, wenn das Formular initialisiert wird.
+' Wird ausgefÃ¼hrt, wenn das Formular initialisiert wird.
 '------------------------------------------------------------------------------
 Private Sub UserForm_Initialize()
     Me.Caption = "Prompt Tool (Lade Konfiguration...)"
-    lblStatus.Caption = "Lade verfügbare Modelle und Prompts..."
+    lblStatus.Caption = "Lade verfÃ¼gbare Modelle und Prompts..."
     DoEvents ' UI aktualisieren
 
-    ' --- SCHRITT 1: Verfügbare Modelle von der API laden ---
+    ' --- SCHRITT 1: VerfÃ¼gbare Modelle von der API laden ---
     ' ========================================================
     Dim modelsList As VBA.Collection
     ' Debug.Print "Starte GetAllModels Funktion von Modul owui, um aktuelle Modellliste von OWUI zu erhalten"
     Set modelsList = owui.GetAllModels(ApplyFilter:=False) ' Alle Modelle von OWUI laden, gefiltert oder nicht
     ' Debug.Print "Modell Liste von OWUI erhalten"
     
-    Me.cboModel.Clear ' Alte Einträge löschen
+    Me.cboModel.Clear ' Alte EintrÃ¤ge lÃ¶schen
     
     If modelsList.Count > 0 Then
-        ' ComboBox mit den abgerufenen Modellen füllen
+        ' ComboBox mit den abgerufenen Modellen fÃ¼llen
         Dim modelName As Variant
         For Each modelName In modelsList
             Me.cboModel.AddItem modelName
         Next modelName
         
-        ' Versuche, das Standardmodell aus owuiconfig auszuwählen
+        ' Versuche, das Standardmodell aus owuiconfig auszuwÃ¤hlen
         On Error Resume Next ' Zur Sicherheit, falls das Standardmodell nicht existiert
         Me.cboModel.value = OWUI_MODEL
         If Err.Number <> 0 Then
-            ' Wenn das Standardmodell nicht gefunden wurde, wähle das erste der Liste
+            ' Wenn das Standardmodell nicht gefunden wurde, wÃ¤hle das erste der Liste
             Me.cboModel.ListIndex = 0
         End If
         On Error GoTo 0
@@ -56,19 +47,19 @@ Private Sub UserForm_Initialize()
         Me.cboModel.Enabled = False
     End If
     
-    ' --- SCHRITT 2: Verfügbare Prompts von der API laden ---
+    ' --- SCHRITT 2: VerfÃ¼gbare Prompts von der API laden ---
     ' ========================================================
     Debug.Print "Prompts holen"
     Set promptsList = owui.GetAllPromptCommands()
     
     If promptsList.Count > 0 Then
-        ' ComboBox mit den abgerufenen Prompts füllen
+        ' ComboBox mit den abgerufenen Prompts fÃ¼llen
         Dim p As Variant
         For Each p In promptsList
             cboPrompts.AddItem p
         Next p
         cboPrompts.ListIndex = -1 ' Keine Vorauswahl
-        lblStatus.Caption = "Wähle einen der " & promptsList.Count & " von OpenWebUI geladenen Prompts oder verfasse einen neuen."
+        lblStatus.Caption = "WÃ¤hle einen der " & promptsList.Count & " von OpenWebUI geladenen Prompts oder verfasse einen neuen."
     Else
         lblStatus.Caption = "Konnte keine Prompts laden."
         cboPrompts.AddItem "Keine Prompts gefunden."
@@ -79,25 +70,25 @@ Private Sub UserForm_Initialize()
 End Sub
 
 '------------------------------------------------------------------------------
-' NEU: Wird ausgeführt, wenn ein Prompt aus der Liste ausgewählt wird.
+' Wird ausgefÃ¼hrt, wenn ein Prompt aus der Liste ausgewÃ¤hlt wird.
 '------------------------------------------------------------------------------
 Private Sub cboPrompts_Change()
-    If cboPrompts.ListIndex = -1 Then Exit Sub ' Nichts tun, wenn die Auswahl gelöscht wird
+    If cboPrompts.ListIndex = -1 Then Exit Sub ' Nichts tun, wenn die Auswahl gelÃ¶scht wird
     
-    ' --- Benötigte Variablen deklarieren ---
+    ' --- BenÃ¶tigte Variablen deklarieren ---
     Dim selectedCommand As String
     Dim promptContent As String
-    Dim modelToSelect As String  ' Variable aus der Logik hinzugefügt
+    Dim modelToSelect As String  ' Variable aus der Logik hinzugefÃ¼gt
     
     ' --- Bestehende Logik zum Laden des Prompt-Inhalts ---
     selectedCommand = cboPrompts.value
-    lblStatus.Caption = "Lade Inhalt für '" & selectedCommand & "'..."
+    lblStatus.Caption = "Lade Inhalt fÃ¼r '" & selectedCommand & "'..."
     DoEvents
     
     ' Verwende die bestehende Funktion, um den Inhalt des Prompts abzurufen
     promptContent = owui.GetPromptByCommandName(selectedCommand)
     
-    ' --- Prüfen, ob der Inhalt erfolgreich geladen wurde ---
+    ' --- PrÃ¼fen, ob der Inhalt erfolgreich geladen wurde ---
     If promptContent <> "" Then
         ' Den geladenen Prompt im Textfeld anzeigen
         txtPrompt.text = promptContent
@@ -112,50 +103,54 @@ Private Sub cboPrompts_Change()
             On Error Resume Next ' Falls das Modell nicht in der Liste existiert
             Me.cboModel.value = modelToSelect
             
-            ' Prüfen, ob ein Fehler aufgetreten ist (Modell nicht gefunden)
+            ' PrÃ¼fen, ob ein Fehler aufgetreten ist (Modell nicht gefunden)
             If Err.Number <> 0 Then
-                 ' Optional: Fehler behandeln und Standard auswählen
+                 ' Optional: Fehler behandeln und Standard auswÃ¤hlen
                 MsgBox "Modell '" & modelToSelect & "' nicht in der Liste gefunden. Standard wird beibehalten.", vbExclamation
-                Me.cboModel.ListIndex = 0 ' Wähle Standard (z.B. erstes Element)
+                Me.cboModel.ListIndex = 0 ' WÃ¤hle Standard (z.B. erstes Element)
             End If
-            On Error GoTo 0 ' Fehlerbehandlung zurücksetzen
+            On Error GoTo 0 ' Fehlerbehandlung zurÃ¼cksetzen
         Else
             ' 3. Fallback: Wenn der Prompt KEINEN {{MODEL}}-Tag hat,
-            '    wähle das in owuiconfig.OWUI_MODEL definierte Standardmodell aus.
+            '    wÃ¤hle das in owuiconfig.OWUI_MODEL definierte Standardmodell aus.
             On Error Resume Next ' Zur Sicherheit, falls das Standardmodell nicht in der Liste existiert
             Me.cboModel.value = OWUI_MODEL
             
-            ' Wenn das Setzen des Standardmodells fehlschlägt (z.B. nicht in der Liste),
-            ' dann als letzten Ausweg das erste Element der Liste wählen.
+            ' Wenn das Setzen des Standardmodells fehlschlÃ¤gt (z.B. nicht in der Liste),
+            ' dann als letzten Ausweg das erste Element der Liste wÃ¤hlen.
             If Err.Number <> 0 Then
                 Me.cboModel.ListIndex = 0
             End If
-            On Error GoTo 0 ' Fehlerbehandlung zurücksetzen
+            On Error GoTo 0 ' Fehlerbehandlung zurÃ¼cksetzen
         End If
         
     Else
-        ' Bestehende Logik für den Fehlerfall
-        txtPrompt.text = "Fehler: Konnte Inhalt für '" & selectedCommand & "' nicht laden."
+        ' Bestehende Logik fÃ¼r den Fehlerfall
+        txtPrompt.text = "Fehler: Konnte Inhalt fÃ¼r '" & selectedCommand & "' nicht laden."
         lblStatus.Caption = "Fehler beim Laden des Prompts."
     End If
 End Sub
 
 '------------------------------------------------------------------------------
-' Wird ausgeführt, wenn der "Senden"-Button geklickt wird.
+' Wird ausgefÃ¼hrt, wenn der "Senden"-Button geklickt wird.
 '------------------------------------------------------------------------------
 Private Sub btnSend_Click()
     Dim finalPrompt As String
     Dim model As String
     Dim result As String
     
+    ' Startposition des Cursors VOR dem Streaming merken
+    Dim startRange As Range
+    Set startRange = Selection.Range
+    
     model = cboModel.value
     
     If Trim(txtPrompt.text) = "" Then
-        MsgBox "Bitte geben Sie einen Prompt ein oder wählen Sie einen aus der Liste.", vbExclamation
+        MsgBox "Bitte geben Sie einen Prompt ein oder wÃ¤hlen Sie einen aus der Liste.", vbExclamation
         Exit Sub
     End If
 
-    ' WICHTIG: Die Platzhalter erst jetzt, direkt vor dem Senden, ersetzen.
+    ' Die Platzhalter erst jetzt, direkt vor dem Senden, ersetzen.
     finalPrompt = owui.InjectPrompt(txtPrompt.text)
     
     lblStatus.Caption = "Sende Anfrage an " & model & "..."
@@ -163,8 +158,23 @@ Private Sub btnSend_Click()
     
     ' Funktion aufrufen, um die Antwort direkt ins Word-Dokument zu streamen
     result = owui.StreamOWUIToWordWithModel(finalPrompt, model)
+    
+    ' PrÃ¼fen, ob eine gÃ¼ltige Antwort zurÃ¼ckkam (result enthÃ¤lt den VOLLEN Text)
+    If result <> "" And result <> "Fehler bei der Anfrage" And result <> "Fehler" Then
+        
+        ' Den eingefÃ¼gten Bereich NACH dem Streaming ermitteln und speichern
+        ' Setzt das globale Range-Objekt auf den Bereich vom ursprÃ¼nglichen Start
+        ' bis zur neuen Endposition des Cursors.
+        Set lastResponseRange = ActiveDocument.Range(startRange.Start, Selection.Range.End)
+        
+        lblStatus.Caption = "Antwort wurde eingefÃ¼gt."
+    Else
+        lblStatus.Caption = "Fehler bei der Anfrage oder keine Antwort erhalten."
+        ' Sicherstellen, dass kein ungÃ¼ltiger Range gespeichert wird
+        Set lastResponseRange = Nothing
+    End If
 
-    lblStatus.Caption = "Antwort wurde eingefügt."
+    lblStatus.Caption = "Antwort wurde eingefÃ¼gt."
 End Sub
 
 '------------------------------------------------------------------------------
@@ -174,4 +184,66 @@ Private Sub btnClose_Click()
     Unload Me
 End Sub
 
+'------------------------------------------------------------------------------
+' Hilfsprozedur, welche die eigentliche Logik zum RÃ¼ckgÃ¤ngigmachen enthÃ¤lt.
+' Diese ist KEINE Ereignisprozedur und kann daher Parameter haben.
+' Der optionale Parameter showMessage definiert, ob die Statusmeldung "Die letzte
+' Antwort wurde entfernt." erscheint, was bei Retry nicht erforderlich ist
+'------------------------------------------------------------------------------
+Private Sub PerformUndo(Optional ByVal showMessage As Boolean = True)
+    ' PrÃ¼fen, ob ein gÃ¼ltiger Range gespeichert ist
+    If lastResponseRange Is Nothing Then
+        If showMessage Then
+            MsgBox "Es gibt keine Aktion zum RÃ¼ckgÃ¤ngigmachen.", vbInformation
+        End If
+        Exit Sub
+    End If
+    
+    ' PrÃ¼fen, ob der Range im Dokument noch existiert
+    On Error Resume Next
+    Dim docStart As Long, docEnd As Long
+    docStart = ActiveDocument.content.Start
+    docEnd = ActiveDocument.content.End
+    
+    If lastResponseRange.Start >= docStart And lastResponseRange.End <= docEnd Then
+        ' Der Range scheint gÃ¼ltig zu sein, also lÃ¶schen
+        lastResponseRange.Delete
+        If showMessage Then
+            lblStatus.Caption = "Die letzte Antwort wurde entfernt."
+        End If
+    Else
+        If showMessage Then
+            MsgBox "Der rÃ¼ckgÃ¤ngig zu machende Text wurde bereits aus dem Dokument entfernt.", vbExclamation
+        End If
+    End If
+    On Error GoTo 0
+    
+    ' Den gespeicherten Range zurÃ¼cksetzen
+    Set lastResponseRange = Nothing
+End Sub
+
+'------------------------------------------------------------------------------
+' Ereignisprozedur, die ausgefÃ¼hrt wird, wenn der Benutzer auf btnUndo klickt.
+'------------------------------------------------------------------------------
+Private Sub btnUndo_Click()
+    ' Ruft die Hilfsprozedur auf und sagt ihr, ob sie eine gelÃ¶scht-Nachricht anzeigen soll.
+    Call PerformUndo(showMessage:=True)
+End Sub
+
+'------------------------------------------------------------------------------
+' LÃ¶scht die letzte Antwort und sendet den Prompt sofort erneut
+'------------------------------------------------------------------------------
+Private Sub btnRetry_Click()
+    ' PrÃ¼fen, ob es Ã¼berhaupt etwas zum Wiederholen gibt
+    If lastResponseRange Is Nothing Then
+        MsgBox "Es gibt keine vorherige Antwort, die wiederholt werden kÃ¶nnte.", vbInformation
+        Exit Sub
+    End If
+
+    ' Schritt 1: Rufe die Hilfsprozedur auf, ABER ohne eine Statusmeldung anzuzeigen
+    Call PerformUndo(showMessage:=False)
+
+    ' Schritt 2: FÃ¼hre die Logik zum Senden sofort erneut aus
+    Call btnSend_Click
+End Sub
 
