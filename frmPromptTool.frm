@@ -15,6 +15,10 @@ Private Sub CommandButton1_Click()
 
 End Sub
 
+Private Sub lblStatus_Click()
+
+End Sub
+
 '------------------------------------------------------------------------------
 ' Wird ausgeführt, wenn das Formular initialisiert wird.
 '------------------------------------------------------------------------------
@@ -179,20 +183,18 @@ Private Sub btnSend_Click()
         
         ' === Backslashes in Anführungszeichen umwandeln (NUR IM NEUEN TEXT) ===
     
-        Dim findInRange As Range
-        Set findInRange = lastResponseRange ' Arbeite mit einer Kopie des Bereichs
+        Dim replaceRange As Range
+        Set replaceRange = ActiveDocument.Range(lastResponseRange.Start, lastResponseRange.End)
         
-        With findInRange.Find
+        With replaceRange.Find
             .ClearFormatting
             .Replacement.ClearFormatting
-            .text = "\"                         ' Suchen nach: Backslash
-            .Replacement.text = """"            ' Ersetzen durch: Anführungszeichen
+            .text = "\"
+            .Replacement.text = """"
             .Forward = True
-            .Wrap = wdFindStop                  ' Suche nur innerhalb des Ranges stoppen
+            .Wrap = wdFindStop
             .Format = False
             .MatchCase = False
-            
-            ' Führe die Ersetzung für alle Vorkommen im Range aus
             .Execute Replace:=wdReplaceAll
         End With
         ' =====================================================================
@@ -202,28 +204,25 @@ Private Sub btnSend_Click()
         ' ======================================================================
         ' Prüfen, ob der richtige Prompt verwendet wurde
         If InStr(1, "," & ITALIC_PROMPT_LIST & ",", "," & Trim(Me.cboPrompts.value) & ",") > 0 Then
-            Dim formatRange As Range
-            Set formatRange = lastResponseRange
             
-            ' Suche den letzten Doppelpunkt im Bereich (Rückwärtssuche)
+            Dim formatRange As Range
+            Set formatRange = ActiveDocument.Range(lastResponseRange.Start, lastResponseRange.End)
+            
             With formatRange.Find
-                ' WICHTIG: Setzt alle alten Sucheinstellungen (Fett, Kursiv, etc.) zurück
                 .ClearFormatting
-                
                 .text = ":"
-                .Forward = False
+                .Forward = False ' Rückwärtssuche
                 .Wrap = wdFindStop
                 
+                ' Wenn .Execute erfolgreich ist, wird der formatRange auf den Fundort (den Doppelpunkt) reduziert.
                 If .Execute Then
-                    ' Wenn diese Box erscheint, wurde der Doppelpunkt gefunden.
-                    MsgBox "Doppelpunkt gefunden! Formatiere jetzt kursiv."
-                
+            
+                    ' Erstelle den Bereich, der kursiv formatiert werden soll.
                     Dim italicRange As Range
                     Set italicRange = ActiveDocument.Range(lastResponseRange.Start, formatRange.Start)
                     italicRange.Font.Italic = True
                 Else
-                    ' Wenn diese Box erscheint, ist die Suche fehlgeschlagen.
-                    MsgBox "FEHLER: Doppelpunkt wurde im Text nicht gefunden."
+                    ' MsgBox "FEHLER: Doppelpunkt wurde im Text nicht gefunden."
                 End If
             End With
         End If
@@ -231,7 +230,9 @@ Private Sub btnSend_Click()
         
         ' === Cursor automatisch in Belegstelle positionieren ===
         Dim findRange As Range
-        Set findRange = lastResponseRange ' Arbeite mit einer Kopie des Bereichs
+        ' Die folgende Zeile stellt sicher, dass eine ECHTE, unabhängige Kopie
+        ' des Bereichs erstellt wird, damit das Original "lastResponseRange" nicht verändert wird.
+        Set findRange = ActiveDocument.Range(lastResponseRange.Start, lastResponseRange.End)
         
         ' Konfiguriere die Suche
         With findRange.Find
