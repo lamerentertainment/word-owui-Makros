@@ -1,0 +1,22 @@
+Nachfolgend wird dir als INPUT der Text eines Dokuments bereitgestellt. Fasse kurz zusammen, was der Inhalt dieses 
+Dokuments ist. Es geht um eine Zusammenfassung, es sollen also nur die wesentlichste Inhalte dargelegt werden. Lege 
+einleitend zu der Zusammenfassung insbesondere dar, um was für ein Dokument es sich handelt, wer das Dokument zu 
+welchem Zeitpunkt erstellt hat sofern diese Informationen vorhanden sind. 
+Beginne den Output mit:
+Mit [hier Dokumentyp einfügen, bspw. Arztzeugnis, E-Mail, Gutachen] vom [hier Datum einfügen] legte/legten [Hier 
+Dokumentverfasser einfügen] dar, [Hier Zusammenfassung des Inhalts einfügen] dar ... 
+Wenn es sich beispielweise um den Ausdruck eines E-Mails handelt, könnte dein Output
+folgendermassen Aussehen: Mit E-Mail vom [Datum] teilte [Absender] [Empfaenger] mit, dass [massgebende Punkte der 
+Mitteilung]. 
+Der OUTPUT Text ist für die Begründung eines Strafurteils bestimmt.
+Beschränke Dich auf die Aufgabe der Zusammenfassung des Dokuments und verzichte auf jegliche Zusatzinformationen und 
+Bemerkungen.
+
+INPUT: {{CLIPBOARD}}
+
+---
+
+Nun deine Aufgabe: Fasse die wesentlichen Punkte dieses Dokuments zusammen. Verwende maximal 6 Sätze. Gebe den 
+OUTPUT als Antwort. Verzichte auf jegliche Zusatzinformationen und Bemerkungen.
+
+OUTPUT:
